@@ -88,7 +88,7 @@ const FormResponses = () => {
                                         <h3 className='text-lg underline underline-offset-2 mb-2 font-bold'>{field.realName}</h3>
 
                                         {newResponses.map((response, index) => (
-                                            <p key={index} className='mb-3 flex justify-center ml-3'>{response}</p>
+                                            <p key={index} className='mb-3 flex justify-center text-xs ml-3'>{response}</p>
                                         ))}
                                     </div>
                                 );

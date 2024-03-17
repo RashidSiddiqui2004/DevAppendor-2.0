@@ -28,14 +28,13 @@ function Navbar() {
     window.location.href = '/login'
   }
 
-  const uid = auth?.currentUser?.uid;
+  const uid = JSON.parse(localStorage.getItem('user'))?.user?.uid;
 
   const [u_name, setUser] = useState('');
 
   getUsernameByUID(uid).then((username) => {
     if (username) {
       setUser(username);
-      console.log("username is: ", u_name);
     } else {
       return;
     }
@@ -181,7 +180,8 @@ function Navbar() {
                     </Link>
                   </div> : ""}
 
-                  {!user && (<Link to={'/signup'} className="text-sm font-medium text-white">
+                  {!user && (<Link to={'/signup'}
+                    className="text-sm font-medium text-white bg-slate-900 px-2 py-2 rounded-md">
                     Signup
                   </Link>)}
 
@@ -198,7 +198,10 @@ function Navbar() {
 
 
                 {/* <Link to={'/user-profile'}> */}
-                <Button message={u_name} />
+                {
+                  user && <Button message={u_name} />
+                }
+
                 {/* </Link> */}
 
               </div>

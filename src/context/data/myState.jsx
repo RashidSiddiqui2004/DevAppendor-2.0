@@ -30,20 +30,15 @@ function myState(props) {
 
     const generateFormURL = async (creatorID, eventName, description, fields) => {
 
-        if (creatorID == null) {
+        if (creatorID === null || creatorID === undefined) {
             return toast.error("You are not authenticated!")
         }
 
-        else if (eventName == "") {
-            return toast.error("Event name is required!");
-        }
-
-        else if (fields == null) {
+        else if (fields === null) {
             return toast.error("Atleast 1 field is required!")
         }
 
-        try {
-
+        try {  
             const formRef = collection(fireDB, 'forms');
 
             const formFields = [];
@@ -79,8 +74,7 @@ function myState(props) {
                 numberofResponses: 0,
                 time: Timestamp.now(),
             }
-
-            // console.log(formFields);
+ 
 
             const docRef = await addDoc(formRef, formObject);
 
@@ -135,32 +129,38 @@ function myState(props) {
 
             const formRef = doc(fireDB, 'forms', formID);
             const formSnapshot = await getDoc(formRef);
+ 
 
             if (formSnapshot.exists()) {
                 const prevResponseCount = formSnapshot.data().numberofResponses || 0;
                 const prevFormState = formSnapshot.data().fields;
+ 
+            //     const missingRequiredFields = Object.keys(prevFormState).filter(fieldName => {
+                    
+            //         const field = prevFormState[fieldName];
 
-                const missingRequiredFields = Object.keys(prevFormState).filter(fieldName => {
-                    const field = prevFormState[fieldName];
+            //         if (field.isNeccesary && !formData[fieldName]) {
+            //             console.log(fieldName);
+            //             toast.error(`Please fill ${field.realName}`);
+            //             setLoading(false);
+            //             return true;
+            //         }
 
-                    if (field.isNeccesary && !formData[fieldName]) {
-                        toast.error(`Please fill ${field.realName}`);
-                        setLoading(false);
-                        return true;
-                    }
+            //         return false;
+            //     });
 
-                    return false;
-                });
-
-                if (missingRequiredFields.length > 0) {
-                    return false;
-                }
+                // if (missingRequiredFields.length > 0) {
+                //     return false;
+                // }
 
                 const updatedFields = { ...prevFormState };
 
-                Object.keys(formData).forEach(fieldName => {
-                    const field = updatedFields[fieldName];
+                // console.log(formData);
 
+                Object.keys(formData).forEach(fieldName => {
+                    // console.log("fieldname: ",fieldName);
+                    const field = updatedFields[fieldName];
+                    // console.log("field: ", field);
                     if (field) {
                         const encryptedData = formData[fieldName];
                         field.responses.push(encryptedData);
@@ -199,6 +199,151 @@ function myState(props) {
         }
     };
 
+
+
+
+    const collectData = async (formID) => {
+        try {
+            const formRef = doc(fireDB, 'forms', formID);
+            const formSnapshot = await getDoc(formRef);
+
+            if (formSnapshot.exists()) {
+                const form = formSnapshot.data();
+                const responsesCollectionRef = collection(fireDB, 'responses');
+
+                // Get form responses
+                const responsesQuery = query(responsesCollectionRef, where('formID', '==', formID));
+                const responsesSnapshot = await getDocs(responsesQuery); 
+                const responses = responsesSnapshot.docs.map(doc => doc.data());
+
+                return { form, responses };
+            } else {
+                console.error(`Form with ID '${formID}' does not exist.`);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error getting form responses:', error);
+            return null;
+        }
+    }
+
+    const [myForms, setMyForms] = useState([]);
+
+    const getMyForms = async (userID) => {
+        setLoading(true)
+
+        if (userID === undefined || userID === null) {
+            return;
+        }
+
+        try {
+            const q = query(
+                collection(fireDB, 'forms'),
+                where('creatorID', '==', userID),
+                orderBy('time', 'desc')
+            );
+
+            const unsubscribe = onSnapshot(q, (QuerySnapshot) => {
+                let myForms = [];
+                QuerySnapshot.forEach((doc) => {
+                    myForms.push({ ...doc.data(), id: doc.id });
+                });
+
+                setMyForms(myForms);
+
+                setLoading(false);
+            });
+
+            return () => unsubscribe();
+        } catch (error) {
+            let myPostArray = [];
+            setMyForms(myPostArray);
+            setLoading(false);
+        }
+    }
+
+    const dropResponse = async (responseID) => {
+        setLoading(true)
+        try {
+            await deleteDoc(doc(fireDB, 'responses', responseID))
+            toast.success('Response deleted !')
+            getMyForms();
+            setLoading(false)
+        } catch (error) {
+            console.log(error)
+            setLoading(false)
+        }
+    }
+
+
+    // const [reports, setReports] = useState([]);
+
+    // const getAllReports = async () => {
+    //     setLoading(true)
+
+    //     try {
+    //         const q = query(
+    //             collection(fireDB, 'reports'),
+    //             orderBy('timestamp', 'asc'),
+    //             where('filed', "==", false)
+    //         );
+
+    //         const data = onSnapshot(q, (QuerySnapshot) => {
+    //             let reportsArray = [];
+
+    //             QuerySnapshot.forEach((doc) => {
+    //                 reportsArray.push({ ...doc.data(), id: doc.id });
+    //             });
+    //             setReports(reportsArray);
+    //             setLoading(false);
+
+    //         });
+
+    //         return true;
+
+    //     } catch (error) {
+    //         setLoading(false)
+    //         return false;
+    //     }
+
+    // }
+ 
+
+    return (
+        <MyContext.Provider value={{
+            mode, loading, setLoading,
+            generateFormURL, getForm, collectData, appendDetails,
+            dropResponse,
+            myForms, getMyForms,
+        }}>
+            {props.children}
+        </MyContext.Provider>
+    )
+}
+
+export default myState
+
+
+
+
+// const collectData2 = async (formID) => {
+//     const formsRef = doc(fireDB, 'forms', formID);
+
+//     try {
+//         const formDoc = await getDoc(formsRef);
+
+//         if (formDoc.exists()) {
+//             const data = { id: formDoc.id, ...formDoc.data() };
+
+//             const formStructureFetched = data;
+
+//             return formStructureFetched;
+//         }
+//     } catch (error) {
+//         console.error('Error :', error);
+//         return false;
+//     }
+// }
 
     // const appendDetails2 = async (formID, formData) => {
     //     try {
@@ -261,282 +406,3 @@ function myState(props) {
     //         toast.error('Error updating form data. Please try again.');
     //     }
     // };
-
-
-    const collectData = async (formID) => {
-        try {
-            const formRef = doc(fireDB, 'forms', formID);
-            const formSnapshot = await getDoc(formRef);
-
-            if (formSnapshot.exists()) {
-                const form = formSnapshot.data();
-                const responsesCollectionRef = collection(fireDB, 'responses');
-
-                // Get form responses
-                const responsesQuery = query(responsesCollectionRef, where('formID', '==', formID));
-                const responsesSnapshot = await getDocs(responsesQuery); 
-                const responses = responsesSnapshot.docs.map(doc => doc.data());
-
-                return { form, responses };
-            } else {
-                console.error(`Form with ID '${formID}' does not exist.`);
-                return null;
-            }
-        } catch (error) {
-            console.error('Error getting form responses:', error);
-            return null;
-        }
-    }
-
-
-
-    const collectData2 = async (formID) => {
-        const formsRef = doc(fireDB, 'forms', formID);
-
-        try {
-            const formDoc = await getDoc(formsRef);
-
-            if (formDoc.exists()) {
-                const data = { id: formDoc.id, ...formDoc.data() };
-
-                const formStructureFetched = data;
-
-                return formStructureFetched;
-            }
-        } catch (error) {
-            console.error('Error :', error);
-            return false;
-        }
-    }
-
-
-    const [myForms, setMyForms] = useState([]);
-
-    const getMyForms = async (userID) => {
-        setLoading(true)
-
-        if (userID === undefined || userID === null) {
-            return;
-        }
-
-        try {
-            const q = query(
-                collection(fireDB, 'forms'),
-                where('creatorID', '==', userID),
-                orderBy('time', 'desc')
-            );
-
-            const unsubscribe = onSnapshot(q, (QuerySnapshot) => {
-                let myForms = [];
-                QuerySnapshot.forEach((doc) => {
-                    myForms.push({ ...doc.data(), id: doc.id });
-                });
-
-                setMyForms(myForms);
-
-                setLoading(false);
-            });
-
-            return () => unsubscribe();
-        } catch (error) {
-            let myPostArray = [];
-            setMyForms(myPostArray);
-            setLoading(false);
-        }
-    }
-
-    const dropResponse = async (responseID) => {
-        setLoading(true)
-        try {
-            await deleteDoc(doc(fireDB, 'responses', responseID))
-            toast.success('Response deleted !')
-            getMyForms();
-            setLoading(false)
-        } catch (error) {
-            console.log(error)
-            setLoading(false)
-        }
-    }
-
-
-
-
-
-
-    const [reports, setReports] = useState([]);
-
-    const getAllReports = async () => {
-        setLoading(true)
-
-        try {
-            const q = query(
-                collection(fireDB, 'reports'),
-                orderBy('timestamp', 'asc'),
-                where('filed', "==", false)
-            );
-
-            const data = onSnapshot(q, (QuerySnapshot) => {
-                let reportsArray = [];
-
-                QuerySnapshot.forEach((doc) => {
-                    reportsArray.push({ ...doc.data(), id: doc.id });
-                });
-                setReports(reportsArray);
-                setLoading(false);
-
-            });
-
-            return true;
-
-        } catch (error) {
-            setLoading(false)
-            return false;
-        }
-
-    }
-
-
-
-    const UpdateReportState = async (reportId) => {
-        try {
-            // Get a reference to the specific report document
-            const reportRef = doc(fireDB, 'reports', reportId);
-
-            // Get the current data of the report
-            const reportSnapshot = await getDoc(reportRef);
-            const reportData = reportSnapshot.data();
-
-            // Check if the 'filed' attribute exists
-            if (reportData && reportData.filed !== undefined) {
-                // 'filed' attribute exists, update it to true
-                await updateDoc(reportRef, { filed: true });
-            } else {
-                // 'filed' attribute doesn't exist, add it and set to true
-                await setDoc(reportRef, { filed: true }, { merge: true });
-            }
-
-        } catch (error) {
-            console.error('Error updating report state:', error);
-        }
-    }
-
-    const [posts, setPosts] = useState({
-        title: "",
-        description: "",
-        author: null,
-        authorId: "",
-        location: "",
-        category: "",
-        imageUrl: null,
-        tags: null,
-        likes: 0,
-        supports: 0,
-        flags: 0,
-        time: Timestamp.now(),
-        date: new Date().toLocaleString(
-            "en-US",
-            {
-                month: "short",
-                day: "2-digit",
-                year: "numeric",
-            }
-        )
-    });
-
-    const addPost = async () => {
-
-        if (posts.title == null || posts.category == null || posts.description == null) {
-            return toast.error("All fields are required")
-        }
-
-        setLoading(true)
-
-        try {
-            const postRef = collection(fireDB, 'posts');
-            await addDoc(postRef, posts)
-            toast.success("Added post successfully");
-
-            setTimeout(() => {
-                window.location.href = '/community-posts'
-            }, 800);
-
-            getPostData();
-
-            setLoading(false)
-
-            return true;
-        } catch (error) {
-            console.log(error);
-            setLoading(false)
-        }
-    }
-
-    const [post, setPost] = useState([]);
-
-    const getPostData = async () => {
-        setLoading(true)
-
-        try {
-            const q = query(
-                collection(fireDB, 'posts'),
-                orderBy('time', 'desc')
-            );
-
-            const data = onSnapshot(q, (QuerySnapshot) => {
-                let postArray = [];
-                QuerySnapshot.forEach((doc) => {
-                    postArray.push({ ...doc.data(), id: doc.id });
-                });
-                setPost(postArray);
-                setLoading(false);
-            });
-
-            return () => data;
-
-        } catch (error) {
-            console.log(error)
-            setLoading(false)
-        }
-
-    }
-
-    useEffect(() => {
-        getPostData();
-    }, []);
-
-
-    // update post function
-    // const updatePost = async () => {
-    // setLoading(true)
-    // try {
-
-    //     await setDoc(doc(fireDB, 'posts', posts.id), posts)
-    //     toast.success("Post Updated successfully")
-    //     setTimeout(() => {
-    //         window.history.back();
-    //     }, 800);
-    //     getPostData();
-    //     setLoading(false)
-
-    // } catch (error) {
-    //     console.log(error)
-    //     setLoading(false)
-    // }
-    // }
-
-    // delete post
-
-
-    return (
-        <MyContext.Provider value={{
-            mode, loading, setLoading,
-            generateFormURL, getForm, collectData, appendDetails,
-            dropResponse,
-            myForms, getMyForms,
-        }}>
-            {props.children}
-        </MyContext.Provider>
-    )
-}
-
-export default myState

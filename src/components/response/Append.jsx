@@ -9,8 +9,8 @@ import RenderHTMLContent from '../../utils/RenderHTMLContent'
 import SubmissionSuccessMessage from './SubmissionSuccessMsg';
 import UnauthNavbar from '../UnauthNavbar';
 import Info from '../utilityClasses/Info';
-import Feedback from '../utilityClasses/Feedback';
-import SurveyModal from '../utilityClasses/FeedbackModal';
+// import Feedback from '../utilityClasses/Feedback';
+// import SurveyModal from '../utilityClasses/FeedbackModal';
 
 const Append = () => {
 
@@ -22,6 +22,7 @@ const Append = () => {
     const [formStructure, setFormStructure] = useState(null);
     const [description, setDescription] = useState('');
     const [formSubmitted, setFormSubmitted] = useState(false);
+    const [surveyNotDone, setSurveyDone] = useState(true);
 
     const params = useParams();
     const formID = params.id;
@@ -105,9 +106,13 @@ const Append = () => {
 
                 <div>
                     <SubmissionSuccessMessage />
-                    <SurveyModal />
-                </div>
 
+                    {/* {
+                        surveyNotDone &&
+                        <SurveyModal setSurveyDone={setSurveyDone}/>
+                    } */}
+
+                </div>
 
                 :
 
@@ -125,63 +130,110 @@ const Append = () => {
                                     options = field?.options;
                                 }
 
-                                return (field.datatype === "boolean")
-                                    ?
-                                    <div key={fieldName} className="flex flex-col mb-4 md:mr-4">
-                                        <label htmlFor={fieldName} className="">
-                                            {field.realName} {field.isNeccesary ? '*' : ''}
-                                        </label>
-                                        <select
-                                            key={fieldName}
-                                            value={formValues[fieldName] || ""}
-                                            onChange={(e) => handleInputChange(fieldName, e.target.value)}
-                                            className={'bg-slate-600 outline-none rounded-md border-none text-white px-7 my-2 py-1 text-center w-[70%] mx-[15%] md:w-full'}
-                                            required
-                                        >
-                                            <option value="true">True</option>
-                                            <option value="false">False</option>
-                                        </select>
-                                    </div>
-                                    :
+                                switch (field.datatype) {
+                                    case "boolean":
+                                        return (
+                                            <div key={field.fieldName} className="flex flex-col mb-4 md:mr-4">
+                                                <label htmlFor={field.fieldName} className="">
+                                                    {field.realName} {field.isNeccesary ? '*' : ''}
+                                                </label>
+                                                <select
+                                                    key={field.fieldName}
+                                                    value={formValues[field.fieldName] || ""}
+                                                    onChange={(e) => handleInputChange(fieldName, e.target.value)}
+                                                    className={'bg-slate-600 outline-none rounded-md border-none text-white px-7 my-2 py-1 text-center w-[70%] mx-[15%] md:w-full'}
+                                                    required
+                                                >
+                                                    <option value="true">True</option>
+                                                    <option value="false">False</option>
+                                                </select>
+                                            </div>
+                                        );
 
-                                    (field.datatype === "mutli-choice") ? (
-                                        <div className="flex flex-col mb-4 md:mr-4">
-                                            <label htmlFor={fieldName} className="">
-                                                {field.realName}  {field.isNeccesary ? '*' : ''}
-                                            </label>
-                                            <select
-                                                id={fieldName}
-                                                name={fieldName}
-                                                onChange={(e) => handleInputChange(fieldName, e.target.value)}
-                                                value={formValues[fieldName] || []}
-                                                // multiple
-                                                className="bg-slate-600 outline-none rounded-md border-none text-white px-7 my-2 py-1 text-center"
-                                                required={field.isNeccesary}
-                                            >
-                                                {field.options.map((option, optionIndex) => (
-                                                    <option key={optionIndex} value={option}>
-                                                        {option}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    ) :
-                                        <div key={fieldName} className="flex flex-col mb-4 md:mr-4">
-                                            <label htmlFor={fieldName} className="">
-                                                {field.realName}  {field.isNeccesary ? '*' : ''}
-                                            </label>
-                                            <input
-                                                type={field.datatype}
-                                                id={fieldName}
-                                                name={fieldName}
-                                                placeholder={`Enter ${field.realName}`}
-                                                onChange={(e) => handleInputChange(fieldName, e.target.value)}
-                                                value={formValues[fieldName] || ''}
-                                                className={`bg-slate-600 outline-none rounded-md border-none text-white px-7 my-2 py-1 text-center ${field.isNeccesary ? 'border-red-500' : ''
-                                                    }`}
-                                                required={field.isNeccesary}
-                                            />
-                                        </div>
+                                    case "multi-choice":
+                                        return (
+                                            <div key={field.fieldName} className="flex flex-col mb-4 md:mr-4">
+                                                <label htmlFor={field.fieldName} className="">
+                                                    {field.realName}  {field.isNeccesary ? '*' : ''}
+                                                </label>
+                                                <select
+                                                    id={field.fieldName}
+                                                    name={field.fieldName}
+                                                    onChange={(e) => handleInputChange(fieldName, e.target.value)}
+                                                    value={formValues[field.fieldName] || []}
+                                                    className="bg-slate-600 outline-none rounded-md border-none text-white px-7 my-2 py-1 text-center"
+                                                    required={field.isNeccesary}
+                                                >
+                                                    {field.options.map((option, optionIndex) => (
+                                                        <option key={optionIndex} value={option}>
+                                                            {option}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        );
+
+                                    case "long-text":
+                                        return (
+                                            <div key={field.fieldName} className="flex flex-col mb-4 md:mr-4">
+                                                <label htmlFor={field.fieldName} className="text-white">
+                                                    {field.realName} {field.isNeccesary ? '*' : ''}
+                                                </label>
+                                                <textarea
+                                                    id={field.fieldName}
+                                                    name={field.fieldName}
+                                                    placeholder={`Enter ${field.realName}`}
+                                                    onChange={(e) => handleInputChange(fieldName, e.target.value)}
+                                                    value={formValues[field.fieldName] || ''}
+                                                    className={`bg-slate-600 outline-none rounded-md border-none text-white px-4 py-2 resize-none ${field.isNeccesary ? 'border-red-500' : ''
+                                                        }`}
+                                                    required={field.isNeccesary}
+                                                    rows={4} // Set the number of rows you want
+                                                />
+                                            </div>
+                                        );
+
+                                    case "number":
+                                        return (
+                                            <div key={field.fieldName} className="flex flex-col mb-4 md:mr-4">
+                                                <label htmlFor={field.fieldName} className="">
+                                                    {field.realName}  {field.isNeccesary ? '*' : ''}
+                                                </label>
+                                                <input
+                                                    type={field.datatype}
+                                                    min={0}
+                                                    id={field.fieldName}
+                                                    name={field.fieldName}
+                                                    placeholder={`Enter ${field.realName}`}
+                                                    onChange={(e) => handleInputChange(fieldName, e.target.value)}
+                                                    value={formValues[fieldName] || ''}
+                                                    className={`bg-slate-600 outline-none rounded-md border-none text-white px-7 my-2 py-1 text-center ${field.isNeccesary ? 'border-red-500' : ''
+                                                        }`}
+                                                    required={field.isNeccesary}
+                                                />
+                                            </div>
+                                        );
+
+                                    default:
+                                        return (
+                                            <div key={fieldName} className="flex flex-col mb-4 md:mr-4">
+                                                <label htmlFor={fieldName} className="">
+                                                    {field.realName}  {field.isNeccesary ? '*' : ''}
+                                                </label>
+                                                <input
+                                                    type={field.datatype}
+                                                    id={fieldName}
+                                                    name={fieldName}
+                                                    placeholder={`Enter ${field.realName}`}
+                                                    onChange={(e) => handleInputChange(fieldName, e.target.value)}
+                                                    value={formValues[fieldName] || ''}
+                                                    className={`bg-slate-600 outline-none rounded-md border-none text-white px-7 my-2 py-1 text-center ${field.isNeccesary ? 'border-red-500' : ''
+                                                        }`}
+                                                    required={field.isNeccesary}
+                                                />
+                                            </div>
+                                        );
+                                }
                             })}
                     </div>
 

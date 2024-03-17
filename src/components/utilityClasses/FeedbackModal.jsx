@@ -1,9 +1,7 @@
-
 import React, { useState } from 'react';
 import Feedback from './Feedback';
 
-const SurveyModal = () => {
-
+const SurveyModal = ({ setSurveyDone }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const openModal = () => {
@@ -11,41 +9,33 @@ const SurveyModal = () => {
     };
 
     const closeModal = () => {
-        setIsOpen(false);
+        setSurveyDone(false);
     };
 
     return (
-        // <div>
-        //     <button onClick={openModal}>Fill Quick Survey</button>
-        //     <Modal
-        //         isOpen={isOpen}
-        //         onRequestClose={closeModal}
-        //         contentLabel="Quick Survey"
-        //     >
-        //         <button onClick={closeModal}>Close</button>
-        //         <Feedback />  
-        //     </Modal>
-        // </div>
-
-        <div className='mt-10'>
-
-            <button onClick={openModal}>Fill Quick Survey</button>
-
-            {/* <span className='cursor-pointer text-blue-500' onClick={openModal}>
-                <FaCircleInfo className='text-white text-xl' />
-            </span> */}
-
-            <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center py-20 px-[5%] md:px-0'>
-                <div className='bg-white p-4 rounded-md text-slate-800'>
-
-
-                    <button onClick={openModal}>Fill Quick Survey</button>
-
-                    {/* <Feedback/> */}
-
-                </div>
+        <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-60'>
+            <div className='w-96 p-4 rounded-md bg-slate-800'>
+                {!isOpen ? (
+                    <div>
+                        <h2 className='text-center text-xl font-semibold text-gray-200'>
+                            Quick Survey
+                        </h2>
+                        <p className='text-center text-gray-200 mt-2'>
+                            Help us improve! Fill out a quick survey.
+                        </p>
+                        <button
+                            onClick={openModal}
+                            className='block w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                        >
+                            Start Survey
+                        </button>
+                    </div>
+                ) : (
+                    <div className=''>
+                        <Feedback onClose={closeModal} />
+                    </div>
+                )}
             </div>
-
         </div>
     );
 };

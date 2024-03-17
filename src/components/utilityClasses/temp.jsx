@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { surveyQuestions } from './SurveyQuestions';
 
 const Feedback = ({ onClose }) => {
+
     const [questionId, setQuestionId] = useState(0);
     const [answers, setAnswers] = useState({});
 
@@ -14,7 +15,6 @@ const Feedback = ({ onClose }) => {
         if (question.isDescriptive) {
             value = e.target.querySelector('textarea').value;
         } else if (!question.isDescriptive && !question.isNumeric) {
-            console.log(e.target);
             value = e.target.querySelector('select').value;
         } else if (!question.isDescriptive && question.isNumeric) {
             value = e.target.querySelector('input[type="number"]').value;
@@ -30,7 +30,6 @@ const Feedback = ({ onClose }) => {
         setQuestionId((prev) => prev + 1);
     };
 
-
     const handleSubmit = () => {
         // Call your backend API here to submit the answers object
         console.log('Submitting answers:', answers);
@@ -41,12 +40,15 @@ const Feedback = ({ onClose }) => {
     return (
         <div>
             <h2 className="text-lg font-semibold mb-4">Quick Survey</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => e.preventDefault()}>
                 {surveyQuestions.slice(questionId, questionId + 1).map((question, index) => {
                     return (
                         <div key={index} className="mb-4">
                             <p className="font-semibold text-gray-100 mb-2">{question.question}</p>
+
+
                             {question.isDescriptive && (
+
                                 <div>
                                     <textarea
                                         name={`question_${questionId}`}
@@ -54,15 +56,16 @@ const Feedback = ({ onClose }) => {
                                         rows={4}
                                         className="w-full bg-gray-100 border border-gray-300 text-gray-900 font-semibold rounded-lg px-4 py-2 outline-none"
                                     />
-                                    <button
-                                        type="submit"
+
+                                    <button onClick={submitAnswer}
                                         className='bg-slate-200 text-slate-800 w-fit px-3 py-2 rounded-md
-                                     items-center mx-auto mt-3'
-                                    >
-                                        Submit
-                                    </button>
+                                 items-center mx-auto mt-3'
+                                    >Submit</button>
                                 </div>
-                            )}
+
+                            )
+
+                            }
                             {!question.isDescriptive && !question.isNumeric && (
                                 <select
                                     className="w-full bg-gray-100 border border-gray-300 
@@ -77,6 +80,7 @@ const Feedback = ({ onClose }) => {
                                 </select>
                             )}
                             {!question.isDescriptive && question.isNumeric && (
+
                                 <div>
                                     <input
                                         type="number"
@@ -87,28 +91,26 @@ const Feedback = ({ onClose }) => {
                                         className="w-full bg-gray-100 border border-gray-300  text-slate-900
                                         rounded-lg px-4 py-2 outline-none"
                                     />
-                                    <button
-                                        type="submit"
+                                    <button onClick={submitAnswer}
                                         className='bg-slate-200 text-slate-800 w-fit px-3 py-2 rounded-md
-                                     items-center mx-auto mt-3'
-                                    >
-                                        Submit
-                                    </button>
+                                 items-center mx-auto mt-3'
+                                    >Submit</button>
                                 </div>
                             )}
                         </div>
                     );
                 })}
-            </form>
-            <div className="flex justify-center">
-                <button
-                    onClick={onClose}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    Close Survey
-                </button>
-            </div>
-        </div>
+                <div className="flex justify-center">
+                    <button
+                        type="submit"
+                        onClick={onClose}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        Close Survey
+                    </button>
+                </div>
+            </form >
+        </div >
     );
 };
 

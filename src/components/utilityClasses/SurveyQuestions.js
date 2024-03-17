@@ -12,7 +12,7 @@ export const surveyQuestions = [
         isNumeric: false,
     },
     {
-        question: "On a scale of 1 to 10, how likely are you to recommend our company to a friend or colleague?",        
+        question: "On a scale of 1 to 10, how likely are you to recommend our company to a friend or colleague?",
         isDescriptive: false,
         isNumeric: true,
     },

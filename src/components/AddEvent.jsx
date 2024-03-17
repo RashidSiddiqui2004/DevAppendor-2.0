@@ -4,29 +4,24 @@ import myContext from '../context/data/myContext';
 import { Editor } from '@tinymce/tinymce-react';
 import { toast } from 'react-toastify';
 import getUsernameByUID from '../utils/GetUser';
-import { auth } from '../firebase/FirebaseConfig';
+// import { auth } from '../firebase/FirebaseConfig';
 
 const AddEvent = () => {
 
     const context = useContext(myContext)
     const { generateFormURL } = context;
 
-    const [eventName, setEventName] = useState('');
+    const [eventName, setEventName] = useState("");
     const [description, setDesc] = useState("");
 
     const [fields, setFields] = useState([
-        { name: 'Field 1', value: '', dataType: 'text', isNecessary: true, numOptions: 0 , options: [] }
+        { name: 'Field 1', value: '', dataType: 'text', isNeccesary: false, numOptions: 0, options: [] }
     ]);
 
     const [formUrl, setFormUrl] = useState("");
     const [preview, setPreview] = useState(false);
     const [urlState, setShowURL] = useState(false);
 
-    // const handleFieldChange = (index, value) => {
-    //     const newFields = [...fields];
-    //     newFields[index].value = value;
-    //     setFields(newFields);
-    // };
 
     const handleFieldChange = (index, value) => {
         const newFields = [...fields];
@@ -43,11 +38,9 @@ const AddEvent = () => {
     const editorRef = useRef(null);
     const eventRef = useRef();
 
-    const uid = auth?.currentUser?.uid;
+    // const uid = auth?.currentUser?.uid;
 
-    // console.log(JSON.parse(localStorage.getItem('user'))?.user?.uid); 
-
-    const user_emailID = JSON.parse(localStorage.getItem('user'))?.user?.email;
+    const uid = JSON.parse(localStorage.getItem('user'))?.user?.uid;
 
     const [u_name, setUser] = useState('');
 
@@ -63,6 +56,8 @@ const AddEvent = () => {
         const newFields = [...fields];
         newFields[index].dataType = dataType;
         setFields(newFields);
+
+        console.log(fields);
     };
 
     const handleNecessaryChange = (index, newValue) => {
@@ -72,7 +67,7 @@ const AddEvent = () => {
     }
 
     const handleNumOptionsChange = (fieldName, numOptions) => {
-        const newFields = [...fields]; 
+        const newFields = [...fields];
         const index = newFields.findIndex(field => field.name === fieldName);
 
         if (index !== -1) {
@@ -81,7 +76,7 @@ const AddEvent = () => {
             // Reset the options array when changing the number of options
             newFields[index].options = Array(newFields[index].numOptions).fill('');
         }
- 
+
         setFields(newFields);
     };
 
@@ -98,7 +93,7 @@ const AddEvent = () => {
 
 
     const handleAddField = () => {
-        const newField = { name: `Field ${fields.length + 1}`, value: '', dataType: 'text', isNeccesary: false,numOptions: 0, options: [] };
+        const newField = { name: `Field ${fields.length + 1}`, value: '', dataType: 'text', isNeccesary: false, numOptions: 0, options: [] };
         setFields([...fields, newField]);
     };
 
@@ -110,11 +105,18 @@ const AddEvent = () => {
 
         if (description.trim() === '') return toast.info("Form description is empty!");
 
+        if (eventName === "") {
+            return toast.info("Event name is required!");
+        }
+
         const url_form = await generateFormURL(uid, eventName, description, fields);
 
         setFormUrl(url_form);
 
-        setShowURL(true);
+        if (url_form !== false) {
+            setShowURL(true);
+        }
+
     };
 
 
@@ -208,7 +210,7 @@ const AddEvent = () => {
                             init={{
                                 menubar: false,
                                 width: 600,
-                                height: 200,
+                                height: 250,
                                 plugins: 'anchor autolink charmap codesample emoticons link lists searchreplace visualblocks wordcount',
                                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link | align lineheight | numlist bullist | emoticons | removeformat',
                             }}
@@ -244,18 +246,21 @@ const AddEvent = () => {
                                         id={`dataType${index}`}
                                         value={field.dataType}
                                         onChange={(e) => handleDataTypeChange(index, e.target.value)}
-                                        className='bg-slate-600 outline-none border-none rounded-lg text-white px-7 my-2 py-1 text-center w-[40%] md:w-full'
+                                        className='bg-slate-600 outline-none border-none rounded-lg text-white px-7 my-2 py-1
+            w-[40%] md:w-full'
                                         required
                                     >
-                                        <option value="" disabled>Select Data type</option>
-                                        <option value="text">Text</option>
-                                        <option value="number">Number</option>
-                                        <option value="date">Date</option>
-                                        <option value="boolean">Boolean</option>
-                                        <option value="mutli-choice">MCQ</option>
+                                        <option value="" disabled className='text-slate-200 text-center'>Select Data type</option>
+                                        <option value="text" className='text-center'>Text</option>
+                                        <option value="long-text" className='text-center'>Long Text</option>
+                                        <option value="number" className='text-center'>Number</option>
+                                        <option value="date" className='text-center'>Date</option>
+                                        <option value="boolean" className='text-center'>Boolean</option>
+                                        <option value="multi-choice" className='text-center'>MCQ</option>
                                     </select>
                                 </div>
                             </div>
+
 
 
                             <div className='flex items-center w-[10%] mt-6 ml-8'>
@@ -347,7 +352,7 @@ const AddEvent = () => {
                     <p className='mt-5'>Copied to Clipboard</p>
                 </div>
             </div>
- 
+
         </div>
     );
 }
