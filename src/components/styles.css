@@ -1,0 +1,20 @@
+/* font-family styles */
+
+@font-face {
+    font-family: lora;
+    src: url(Lora-Italic.ttf);
+}
+
+@font-face {
+    font-family: lora-regular;
+    src: url(LoraRegular.ttf);
+}
+
+.lora{
+    font-family: lora-regular;
+}
+
+.lora-italic{
+    font-family: lora;
+}
+
