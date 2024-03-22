@@ -34,6 +34,14 @@ const Home = () => {
         </div>
       </div>
 
+      <div className='my-8'>
+        <button className='bg-gray-800 hover:bg-gray-950 text-white
+         font-bold py-4 px-6 rounded-md focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:scale-105'>
+          Create Form
+        </button>
+      </div>
+
+
       <div className='text-center mx-[20%] rounded-lg shadow-md shadow-slate-300
        bg-slate-600 text-red-300 px-2 py-3 mt-8'>
         Developer: Rashid Siddiqui
